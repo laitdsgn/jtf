@@ -130,17 +130,29 @@ export async function AddGame(formData: FormData): Promise<ActionResult> {
       };
     }
 
+    const productionId = formData.get("production_id") as string | null;
+    if (!productionId){
+      return {
+        ok: false,
+        error: `Ta produkcja nie istnieje`,
+      };
+    }
+
     let dbError;
     if (existingRow) {
+      const updateData: Record<string, unknown> = { ...imageColumns, production_id: productionId };
+
       const { error } = await supabase
         .from("daily_images")
-        .update(imageColumns)
+        .update(updateData)
         .eq("day", day);
       dbError = error;
     } else {
+      const insertData: Record<string, unknown> = { day, ...imageColumns, production_id: productionId };
+
       const { error } = await supabase
         .from("daily_images")
-        .insert({ day, ...imageColumns });
+        .insert(insertData);
       dbError = error;
     }
 

@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
+import { createClient as createBrowserClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { LogoutButton } from "@/components/logout-button";
@@ -30,6 +31,14 @@ const page = async () => {
 
   const today = new Date().toISOString().slice(0, 10);
 
+  const publicClient = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+  );
+  const { data: productions } = await publicClient
+    .from("productions")
+    .select();
+
   return (
     <div className="dark min-h-svh bg-zinc-950 text-zinc-100">
       <header className="border-b border-zinc-800">
@@ -48,7 +57,7 @@ const page = async () => {
       </header>
 
       <main className="mx-auto grid max-w-5xl gap-6 px-6 py-10 md:grid-cols-2">
-        <Card className="border-zinc-800 bg-zinc-900">
+        <Card className="overflow-visible border-zinc-800 bg-zinc-900">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-zinc-100">
               <ImageIcon className="h-5 w-5 text-emerald-500" />
@@ -60,7 +69,7 @@ const page = async () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <AddGameForm today={today} />
+            <AddGameForm today={today} productions={productions ?? []} />
           </CardContent>
         </Card>
 

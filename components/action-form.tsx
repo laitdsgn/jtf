@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar, ImageIcon, RefreshCw } from "lucide-react";
+import AutocompleteInput, { type Production } from "@/components/AutocompleteInput";
 import {
   AddGame,
   UpdateGame,
@@ -28,15 +29,26 @@ function ResultBanner({ result }: { result: ActionResult | null }) {
   );
 }
 
-export function AddGameForm({ today }: { today: string }) {
+export function AddGameForm({
+  today,
+  productions,
+}: {
+  today: string;
+  productions: Production[];
+}) {
   const [state, formAction, pending] = useActionState<
     ActionResult | null,
     FormData
-  >(async (prev, formData) => AddGame(formData), null);
+  >(async (_prev, formData) => AddGame(formData), null);
   const formRef = useRef<HTMLFormElement>(null);
+  const [selectedProductionId, setSelectedProductionId] = useState("");
 
   useEffect(() => {
-    if (state?.ok) formRef.current?.reset();
+    if (state?.ok) {
+      formRef.current?.reset();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelectedProductionId("");
+    }
   }, [state]);
 
   return (
@@ -58,6 +70,16 @@ export function AddGameForm({ today }: { today: string }) {
           required
           defaultValue={today}
           className="border-zinc-800 bg-zinc-950 text-zinc-100 focus-visible:ring-emerald-600"
+        />
+      </div>
+
+      <div className="grid gap-2">
+        <Label className="text-zinc-300">Produkcja</Label>
+        <input type="hidden" name="production_id" value={selectedProductionId} />
+        <AutocompleteInput
+          productions={productions}
+          onSelect={(id) => setSelectedProductionId(id)}
+
         />
       </div>
 
@@ -94,7 +116,7 @@ export function UpdateGameForm({ today }: { today: string }) {
   const [state, formAction, pending] = useActionState<
     ActionResult | null,
     FormData
-  >(async (prev, formData) => UpdateGame(formData), null);
+  >(async (_prev, formData) => UpdateGame(formData), null);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
@@ -168,19 +190,35 @@ export function DeleteGameForm({ today }: { today: string }) {
   const [state, formAction, pending] = useActionState<
     ActionResult | null,
     FormData
-  >(async (prev, formData) => DeleteGame(formData), null);
+  >(async (_prev, formData) => DeleteGame(formData), null);
+  const [deleteMode, setDeleteMode] = useState<"id" | "day">("id");
+
   return (
     <form action={formAction} className="flex flex-col gap-5">
       <ResultBanner result={state} />
-      <input type="hidden" name="mode" value="id" />
+      <input type="hidden" name="mode" value={deleteMode} />
 
       <div className="flex flex-row gap-6">
         <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
-          <input type="radio" defaultChecked className="accent-emerald-500" />
+          <input
+            type="radio"
+            name="deleteMode"
+            value="id"
+            checked={deleteMode === "id"}
+            onChange={() => setDeleteMode("id")}
+            className="accent-emerald-500"
+          />
           Usuń po ID
         </label>
         <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
-          <input type="radio" className="accent-emerald-500" />
+          <input
+            type="radio"
+            name="deleteMode"
+            value="day"
+            checked={deleteMode === "day"}
+            onChange={() => setDeleteMode("day")}
+            className="accent-emerald-500"
+          />
           Usuń po dacie
         </label>
       </div>
@@ -198,6 +236,7 @@ export function DeleteGameForm({ today }: { today: string }) {
           type="date"
           name="day"
           defaultValue={today}
+          disabled={deleteMode === "id"}
           className="border-zinc-800 bg-zinc-950 text-zinc-100 focus-visible:ring-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed"
         />
       </div>
@@ -213,6 +252,7 @@ export function DeleteGameForm({ today }: { today: string }) {
           name="id"
           defaultValue={1}
           min={1}
+          disabled={deleteMode === "day"}
           className="border-zinc-800 bg-zinc-950 text-zinc-100 focus-visible:ring-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed"
         />
       </div>

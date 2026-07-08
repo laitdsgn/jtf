@@ -2,12 +2,18 @@
 
 import { useState } from "react";
 
-interface Production {
+export interface Production {
+    id: string;
     production_title: { en: string; pl: string };
     production_release: string;
 }
 
-const AutocompleteInput = ({ productions }: { productions: Production[] }) => {
+export interface AutocompleteInputProps {
+    productions: Production[];
+    onSelect?: (id: string, title: string) => void;
+}
+
+const AutocompleteInput = ({ productions, onSelect }: AutocompleteInputProps) => {
     const [query, setQuery] = useState("");
 
 
@@ -17,37 +23,38 @@ const AutocompleteInput = ({ productions }: { productions: Production[] }) => {
         )
         : [];
 
-    const handleSelect = (title: string) => {
+    const handleSelect = (id: string, title: string) => {
         setQuery(title);
+
+        onSelect?.(id, title);
     };
 
     return (
-        <div className="flex flex-col items-center justify-center relative">
+        <div className="relative w-full">
             <input
-                className="bg-input rounded-sm w-full"
+                className="w-full rounded-sm border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
                 type="text"
                 name="prod"
                 id="prod"
                 value={query}
-                onChange={(e) => {
-                    setQuery(e.target.value);
-
-                }}
+                placeholder="Wyszukaj produkcję…"
+                onChange={(e) => setQuery(e.target.value)}
                 autoComplete="off"
             />
             {filtered.length > 0 && (
-                <ul className="absolute top-full w-full bg-popover border rounded-sm max-h-60 overflow-y-auto z-10">
-                    {filtered.map((p, i) => (
+                <ul className="absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto rounded-sm border border-zinc-800 bg-zinc-900 shadow-lg">
+                    {filtered.map((p) => (
                         <li
-                            key={i}
-                            className="px-3 py-2 cursor-pointer hover:bg-accent"
-                            onClick={() => handleSelect(p.production_title.pl)}
+                            key={p.id}
+                            className="cursor-pointer px-3 py-2 text-sm text-zinc-100 hover:bg-emerald-950/40"
+                            onClick={() => handleSelect(p.id, p.production_title.pl)}
                         >
                             {p.production_title.pl} ({p.production_release})
                         </li>
                     ))}
                 </ul>
             )}
+
         </div>
     );
 };

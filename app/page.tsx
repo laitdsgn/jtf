@@ -1,6 +1,9 @@
-import AutocompleteSystem from "@/components/AutocompleteSystem";
+import GuessingSystem from "../components/GuessingSystem";
+import ProductionBox from "@/components/productionBox";
 
 export const revalidate = 86400;
+
+
 export default function Page() {
   const tries = Array.from({ length: 5 }, (_, i) => i + 1);
 
@@ -31,19 +34,14 @@ export default function Page() {
       <div className="mt-10 w-full max-w-3xl">
         <div className="rounded-xl border border-blue-200/70 bg-white/70 backdrop-blur shadow-sm overflow-hidden">
           <div className="aspect-video w-full bg-gradient-to-br from-slate-100 to-blue-50 flex items-center justify-center text-slate-400 text-sm">
-            <span>klatka z filmu pojawi się tutaj</span>
+            <ProductionBox></ProductionBox>
           </div>
         </div>
 
         {/* Input */}
         <div className="">
-          <AutocompleteSystem></AutocompleteSystem>
-          <button
-            type="button"
-            className="h-11 px-5 rounded-lg bg-blue-500 text-white font-medium hover:bg-blue-600 active:bg-blue-700 transition"
-          >
-            Zgadnij
-          </button>
+          <GuessingSystem></GuessingSystem>
+
         </div>
       </div>
 
