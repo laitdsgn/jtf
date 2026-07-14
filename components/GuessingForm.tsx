@@ -35,12 +35,53 @@ const GuessingForm = ({productions, winningProductionID, winningProductionData}:
     const [productionTries, setProductionTries] = useState<string[][]>([["", ""], ["", ""], ["", ""], ["", ""], ["", ""],]);
     const [listStyle, setListStyle] = useState<string>("")
     const [error, setError] = useState(false);
+    const [activeIndex, setActiveIndex] = useState<number>(-1);
     const inputRef = useRef<HTMLInputElement>(null);
     const filtered = query.length > 0
         ? productions.filter((p) =>
+            p.production_title?.pl != null &&
+            p.production_release != null &&
             p.production_title.pl.toLowerCase().includes(query.toLowerCase())
         )
         : [];
+    const visibleItems = filtered.slice(0, 10);
+    if (activeIndex >= visibleItems.length) {
+        setActiveIndex(visibleItems.length > 0 ? 0 : -1);
+    }
+
+    const chooseIndex = (index: number) => {
+        const p = visibleItems[index];
+        if (!p) return;
+        handleSelect(p.id, p.production_title.pl, p.production_release);
+        setListStyle("hidden");
+        setActiveIndex(-1);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (listStyle === "hidden" || visibleItems.length === 0) {
+            if (e.key === "Escape") {
+                setListStyle("hidden");
+                setActiveIndex(-1);
+            }
+            return;
+        }
+
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            setActiveIndex((prev) => (prev + 1) % visibleItems.length);
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            setActiveIndex((prev) => (prev <= 0 ? visibleItems.length - 1 : prev - 1));
+        } else if (e.key === "Enter") {
+            if (activeIndex >= 0) {
+                e.preventDefault();
+                chooseIndex(activeIndex);
+            }
+        } else if (e.key === "Escape") {
+            setListStyle("hidden");
+            setActiveIndex(-1);
+        }
+    };
 
     const handleSelect = (id: string, title: string, productiond: string) => {
         setSelectedProd({id, title, production_date: productiond})
@@ -109,22 +150,36 @@ const GuessingForm = ({productions, winningProductionID, winningProductionData}:
                         setListStyle("")
                         setError(false);
                     }}
+                    onKeyDown={handleKeyDown}
                     autoComplete="off"
                     aria-invalid={error}
+                    role="combobox"
+                    aria-expanded={filtered.length > 0 && listStyle !== "hidden"}
+                    aria-controls="prod-listbox"
+                    aria-activedescendant={activeIndex >= 0 ? `prod-option-${activeIndex}` : undefined}
                 />
                 {filtered.length > 0 && (
-                    <ul className={`absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto rounded-lg border border-blue-200/70 bg-white/95 shadow-md ${listStyle}`}>
-                        {filtered.map((p) => (
+                    <ul
+                        id="prod-listbox"
+                        role="listbox"
+                        className={`absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto rounded-lg border border-blue-200/70 bg-white/95 shadow-md ${listStyle}`}
+                    >
+                        {filtered.slice(0, 10).map((p, index) => (
                             <li
                                 key={p.id}
-                                className="cursor-pointer px-3 py-2 text-sm text-slate-700 hover:bg-blue-50"
+                                id={`prod-option-${index}`}
+                                role="option"
+                                aria-selected={index === activeIndex}
+                                className={`cursor-pointer px-3 py-2 text-sm text-slate-700 ${index === activeIndex ? "bg-blue-100" : "hover:bg-blue-50"}`}
+                                onMouseEnter={() => setActiveIndex(index)}
                                 onClick={() => {
                                     handleSelect(p.id, p.production_title.pl, p.production_release)
                                     setListStyle("hidden")
+                                    setActiveIndex(-1)
                                 }
                                 }
                             >
-                                {`${p.production_title.pl} (${p.production_release.substring(0, 4)})`}
+                                {`${p.production_title.pl} (${p.production_release?.substring(0, 4) ?? "—"})`}
                             </li>
                         ))}
                     </ul>
@@ -136,7 +191,6 @@ const GuessingForm = ({productions, winningProductionID, winningProductionData}:
             </div>
 
 
-            {/* Tries */}
             <div className="mt-8 w-full max-w-3xl">
                 <div className="flex items-center justify-between mb-2">
           <span className="text-xs uppercase tracking-wider text-slate-500">

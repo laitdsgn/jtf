@@ -1,4 +1,4 @@
-﻿import { supabaseNormalClient} from "@/utils/supabase/supabaseClients";
+﻿import {supabaseNormalClient} from "@/utils/supabase/supabaseClients";
 import Gallery from "./Gallery";
 
 type ImageDetails = {
@@ -19,18 +19,23 @@ const ProductionBox = async () => {
     const sb = await supabaseNormalClient()
 
 
-    const {data, error} = await sb.from('daily_images').select().order('day', {ascending: false}).limit(1);
+    const {
+        data,
+        error
+    } = await sb.from('daily_images').select("day, image1, image2, image3, image4, image5",).order('day', {ascending: false}).limit(1).single();
+
+    // potem await sb.from('daily_images').select().eq('day', new Date().toISOString().split('T')[0]).single();
 
     if (error) {
         console.error("Couldnt get productions: err" + JSON.stringify(error));
         return <p>Could not load productions.</p>;
     }
 
-    if (!data || data.length === 0) {
+    if (!data) {
         return <p>No productions found.</p>;
     }
 
-    const rawItem = data[0];
+    const rawItem = data
     const parsed: dailyImage = {
         day: rawItem.day,
         image1: rawItem.image1 as ImageDetails,
@@ -49,8 +54,8 @@ const ProductionBox = async () => {
         parsed.image5,
     ];
 
-    return <Gallery images={images} />;
+    return <Gallery images={images}/>;
 
 }
 
-export default  ProductionBox;
+export default ProductionBox;

@@ -9,12 +9,12 @@ export default function Page() {
 
     return (
         <><p className={"text-end mx-3 my-2 text-stone-700/40"}>v0.0.1</p>
-            <main className="font-cascadia min-h-screen w-full flex flex-col items-center px-6 py-10">
+            <main className="font-ubuntu min-h-screen w-full flex flex-col items-center px-6 py-10">
 
 
                 {/* Title */}
                 <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-800 text-center">
-                    Jaki to <span className="text-blue-500">film</span>?
+                    JAKI TO <span className="text-blue-500">FILM</span>?
                 </h1>
                 <p className="mt-2 text-slate-500 text-sm md:text-base text-center">
                     zgadnij tytuł na podstawie klatki
